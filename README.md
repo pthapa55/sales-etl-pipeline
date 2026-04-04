@@ -92,7 +92,10 @@ Raw sales data is ingested from a CSV file, cleaned and transformed using Python
 
 ## 🔗 Power BI Dashboard
 
-👉 [https://app.powerbi.com/groups/5fcfb0e3-938b-4e2b-841d-870cc8e40c31/reports/8e509dce-0d6c-4662-abe6-70295591a47f/6526f4bed6607ca49589?experience=power-bi&clientSideAuth=0](YOUR_POWER_BI_LINK_HERE)
+👉 ## 📊 Dashboard Preview
+![Sales Dashboard](dashboard.png)
+
+> 📄 [Download Full Dashboard PDF](dashboard.pdf)
 
 * * *
 
