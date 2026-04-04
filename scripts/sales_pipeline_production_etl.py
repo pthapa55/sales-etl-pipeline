@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 from sqlalchemy import create_engine, text
 from datetime import datetime
@@ -7,10 +8,8 @@ from datetime import datetime
 # -------------------------------
 csv_path = r"C:\Users\Prakash\Documents\Python_Automation_Project\data\Sales.csv"
 log_path = r"C:\Users\Prakash\Documents\Python_Automation_Project\pipeline_log.txt"
-
-server = r"DESKTOP-1SMPQQM\SQLEXPRESS"
+server = r"DESKTOP-1SMPQQM"
 database = "Python_ETL_Pipeline"
-
 pipeline_name = "Sales_Production_ETL"
 
 engine = create_engine(
@@ -28,15 +27,12 @@ try:
 
     if df.empty:
         raise ValueError("CSV is empty")
-
     if "OrderID" not in df.columns:
         raise ValueError("OrderID column missing")
 
     # Fix datatype
     df["OrderID"] = pd.to_numeric(df["OrderID"], errors="coerce")
-
     rows_processed = len(df)
-
     print(f"CSV Rows: {rows_processed}")
 
     # -------------------------------
@@ -51,21 +47,16 @@ try:
         chunksize=1000,
         method="multi"
     )
-
     print("Loaded into staging table")
 
     # -------------------------------
-# 3. MERGE INTO FINAL TABLE
-# -------------------------------
-    with open(r"sql\merge_sales.sql", "r") as f:
+    # 3. MERGE INTO FINAL TABLE
+    # -------------------------------
+    with open(r"C:\Users\Prakash\Documents\Python_Automation_Project\sql\merge_sales.sql", "r") as f:
         merge_sql = f.read()
 
     with engine.begin() as conn:
         conn.execute(text(merge_sql))
-
-    with engine.begin() as conn:
-        conn.execute(text(merge_sql))
-
     print("Merge completed (UPSERT done)")
 
     # -------------------------------
@@ -75,7 +66,6 @@ try:
         "SELECT COUNT(*) AS cnt FROM dbo.Sales",
         engine
     )["cnt"][0]
-
     print(f"Total rows in Sales: {total_rows}")
 
     # -------------------------------
@@ -83,6 +73,7 @@ try:
     # -------------------------------
     with engine.begin() as conn:
         conn.execute(text("TRUNCATE TABLE dbo.Sales_Staging"))
+    print("Staging table cleaned")
 
     # -------------------------------
     # 6. LOG SUCCESS (SQL TABLE)
@@ -101,18 +92,22 @@ try:
         f.write(f"{datetime.now()} - SUCCESS\n")
 
     print("✅ PRODUCTION ETL SUCCESSFUL")
+    sys.exit(0)
 
 except Exception as e:
 
     # -------------------------------
     # LOG FAILURE (SQL TABLE)
     # -------------------------------
-    with engine.begin() as conn:
-        conn.execute(text("""
-            INSERT INTO dbo.ETL_Log 
-            (Run_Time, Pipeline_Name, Status, Rows_Processed, Message)
-            VALUES (GETDATE(), :name, 'FAILED', 0, :msg)
-        """), {"name": pipeline_name, "msg": str(e)})
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("""
+                INSERT INTO dbo.ETL_Log 
+                (Run_Time, Pipeline_Name, Status, Rows_Processed, Message)
+                VALUES (GETDATE(), :name, 'FAILED', 0, :msg)
+            """), {"name": pipeline_name, "msg": str(e)})
+    except Exception as log_err:
+        print(f"⚠️ Could not write to SQL log: {log_err}")
 
     # -------------------------------
     # LOG FAILURE (TEXT FILE)
@@ -121,3 +116,4 @@ except Exception as e:
         f.write(f"{datetime.now()} - ERROR: {str(e)}\n")
 
     print("❌ PIPELINE FAILED:", e)
+    sys.exit(1)
