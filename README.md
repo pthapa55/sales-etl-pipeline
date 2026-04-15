@@ -95,6 +95,7 @@ Raw sales data is ingested from a CSV file, cleaned and transformed using Python
 👉 ## 📊 Dashboard Preview
 
 > 📄 [View the Executive Dashboard](https://github.com/pthapa55/sales-etl-pipeline/blob/main/Executive_Dashboard.PNG))
+> 📄 [View the Executive Dashboard Drill Thru Page](https://github.com/pthapa55/sales-etl-pipeline/blob/main/Region%20Drill%20thru%20Detail%20Page.PNG)
 
 * * *
 
